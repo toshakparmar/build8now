@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  INFLUENCER
+}
+
+enum InfluencerType {
+  ARCHITECT
+  CONTRACTOR
+  INTERIOR_DESIGNER
+  BUILDER
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum CalculationType {
+  FLAT
+  PER_UNIT
+  SLAB
+  PERCENTAGE
+}
+
+enum Metric {
+  WEIGHT
+  QUANTITY
+  PRICE
+  DISTANCE
+  LENGTH
+  WIDTH
+  HEIGHT
+  VOLUME
+  AREA
+}
+
+enum ScopeType {
+  PRODUCT
+  CATEGORY
+  DEFAULT
+}
+
+enum PointsType {
+  FIXED
+  PER_CURRENCY_AMOUNT
+  PERCENTAGE
+}
+
+enum TransactionType {
+  EARN
+  REVERSAL
+  ADJUSTMENT
+  REDEMPTION
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         Role      @default(CUSTOMER)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  influencer   Influencer?
+  orders       Order[]
+  sessions     Session[]
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Influencer {
+  id        String         @id @default(uuid())
+  userId    String         @unique
+  type      InfluencerType
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user       User                         @relation(fields: [userId], references: [id])
+  referrals  CustomerInfluencerReferral[]
+  ledger     LoyaltyLedger[]
+}
+
+model CustomerInfluencerReferral {
+  id           String   @id @default(uuid())
+  customerId   String   @unique
+  influencerId String
+  createdAt    DateTime @default(now())
+
+  influencer Influencer @relation(fields: [influencerId], references: [id])
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products     Product[]
+  loyaltyRules LoyaltyRule[]
+}
+
+model ShippingProfile {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  isActive      Boolean  @default(true)
+  minimumCharge Decimal? @db.Decimal(10,2)
+  maximumCharge Decimal? @db.Decimal(10,2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  products Product[]
+  rules    ShippingRule[]
+}
+
+model ShippingRule {
+  id                String          @id @default(uuid())
+  shippingProfileId String
+  metric            Metric
+  calculationType   CalculationType
+  minValue          Decimal?        @db.Decimal(10,2)
+  maxValue          Decimal?        @db.Decimal(10,2)
+  rate              Decimal?        @db.Decimal(10,2)
+  fixedCharge       Decimal?        @db.Decimal(10,2)
+  priority          Int             @default(0)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  shippingProfile ShippingProfile @relation(fields: [shippingProfileId], references: [id])
+}
+
+model Product {
+  id                String   @id @default(uuid())
+  name              String
+  slug              String   @unique
+  sku               String?  @unique
+  description       String?
+  price             Decimal  @db.Decimal(10,2)
+  brand             String?
+  categoryId        String?
+  shippingProfileId String?
+  defaultWeight     Decimal? @db.Decimal(10,2)
+  defaultLength     Decimal? @db.Decimal(10,2)
+  defaultWidth      Decimal? @db.Decimal(10,2)
+  defaultHeight     Decimal? @db.Decimal(10,2)
+  imageUrl          String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  shippingProfile ShippingProfile? @relation(fields: [shippingProfileId], references: [id])
+  orderItems      OrderItem[]
+  loyaltyRules    LoyaltyRule[]
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  customerId String
+  status     OrderStatus @default(PENDING)
+  subtotal   Decimal     @db.Decimal(10,2)
+  total      Decimal     @db.Decimal(10,2)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  user       User        @relation(fields: [customerId], references: [id])
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id               String   @id @default(uuid())
+  orderId          String
+  productId        String
+  quantity         Int
+  unitPrice        Decimal  @db.Decimal(10,2)
+  lineTotal        Decimal  @db.Decimal(10,2)
+  refundedQuantity Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model LoyaltyRule {
+  id               String     @id @default(uuid())
+  name             String
+  scopeType        ScopeType  @default(DEFAULT)
+  productId        String?
+  categoryId       String?
+  minPurchaseValue Decimal?   @db.Decimal(10,2)
+  maxPurchaseValue Decimal?   @db.Decimal(10,2)
+  pointsType       PointsType
+  pointsValue      Decimal    @db.Decimal(10,2)
+  priority         Int        @default(0)
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  product  Product?  @relation(fields: [productId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+}
+
+model LoyaltyLedger {
+  id              String          @id @default(uuid())
+  influencerId    String
+  orderId         String?
+  orderItemId     String?
+  transactionType TransactionType
+  points          Decimal         @db.Decimal(10,2)
+  relatedLedgerId String?
+  idempotencyKey  String          @unique
+  description     String?
+  createdAt       DateTime        @default(now())
+
+  influencer Influencer @relation(fields: [influencerId], references: [id])
+}

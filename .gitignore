@@ -1,0 +1,27 @@
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+.next/
+build/
+
+# Prisma generated client
+node_modules/.prisma/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
