@@ -8,7 +8,7 @@
 | Field | Details |
 |---|---|
 | **Name** | Toshak Parmar |
-| **Profile** | Freelance Full-Stack Developer |
+| **Profile** | Remote Full-Stack Developer |
 | **Expertise** | Node.js · TypeScript · PostgreSQL · Next.js · REST APIs · Technical SEO |
 | **Company Website** | [Home \| Build8Now](https://build8now.com) |
 | **Submission Date** | October 2026 |
