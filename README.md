@@ -7,7 +7,7 @@
 
 | Field | Details |
 |---|---|
-| **Name** | [YOUR FULL NAME] |
+| **Name** | Toshak Parmar |
 | **Profile** | Freelance Full-Stack Developer |
 | **Expertise** | Node.js · TypeScript · PostgreSQL · Next.js · REST APIs · Technical SEO |
 | **Company Website** | [Home \| Build8Now](https://build8now.com) |
@@ -127,7 +127,8 @@ Within the same scope level, the rule with the highest priority integer wins. On
 
 The LoyaltyLedger table is **never updated or deleted**. All mutations are new rows:
 - **EARN** → order confirmed
-- **REVERSAL** → cancel or refund (references the original ledger ID in elatedLedgerId)
+- **REVERSAL** → cancel or refund (references the original ledger ID in 
+elatedLedgerId)
 - **ADJUSTMENT** → manual admin correction (future)
 - **REDEMPTION** → points spent (not yet built; see Scope Cuts)
 
